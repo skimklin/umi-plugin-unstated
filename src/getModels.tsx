@@ -122,6 +122,8 @@ export const genExports = (imports: string[]) => {
         .map((ele, index) => {
           const path = winPath(getPath(ele));
           const fileName = getFileName(path);
+          if (!fileName) return '';
+
           if (name[fileName]) {
             return '';
           } else {
@@ -141,8 +143,16 @@ export const genExports = (imports: string[]) => {
     .join(EOL);
 };
 
+export const isJsVariableNameValid = (varName: string) => {
+  return /^[a-zA-Z\$_][a-zA-Z\d_]*$/.test(varName);
+}
+
 export const getFileName = (name: string) => {
   const fileName = path.basename(name, path.extname(name));
+  if (!isJsVariableNameValid(fileName)) {
+    console.warn(`"${fileName}" is not a valid javascript variable name,it will be ignored`);
+    return null;
+  }
   if (fileName.endsWith('.model') || fileName.endsWith('.models')) {
     return fileName.split('.').slice(0, -1).join('.');
   }
