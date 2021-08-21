@@ -25,7 +25,6 @@ $ yarn add umi-plugin-unstated
 ```javascript
 // in umi config file
 export default defineConfig({
-  plugins: ['umi-plugin-unstated'],
   unstated: {
     /**
      * global: boolean | string[]
