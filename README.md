@@ -32,7 +32,7 @@ export default defineConfig({
      * global: boolean | string[]
      * 1. 若值为true，会把uModels下所有合法文件的默认导出全部注册到全局（不推荐）
      * 2. 若值为sting[]，会把列表中存在的注册到全局，剩下的用户自行处理（性能较好）
-     * 3. uModels所有合法文件都会注册为Container并添加到umi下，导出key为unstatedModels（import { unstatedModels } from 'umi'）
+     * 3. uModels所有合法文件都会注册为Container并添加到umi下，导出key为uModels（import { uModels } from 'umi'）
      */
     global: ['global'],
     /**
@@ -65,10 +65,10 @@ export default function useGlobal() {
 
 ```javascript
 import React from 'react';
-import { unstatedModels } from 'umi';
+import { uModels } from 'umi';
 
 const App = () => {
-  const { global } = unstatedModels.global.useContainer();
+  const { global } = uModels.global.useContainer();
   return <div>{global}</div>;
 };
 ```
@@ -89,10 +89,10 @@ export default function useExample() {
 
 // MyComponent.tsx
 import React from 'react';
-import { unstatedModels } from 'umi';
+import { uModels } from 'umi';
 
 const ChildComponent = () => {
-  const { exampleState } = unstatedModels.example.useContainer();
+  const { exampleState } = uModels.example.useContainer();
   return (
     <div>
       child: {exampleState}
@@ -100,7 +100,7 @@ const ChildComponent = () => {
   )
 }
 const MyComponent = () => {
-  const { exampleState } = unstatedModels.example.useContainer();
+  const { exampleState } = uModels.example.useContainer();
   return (
     <div>
       {exampleState}
@@ -109,5 +109,5 @@ const MyComponent = () => {
   )
 }
 
-export default () => unstatedModels.example.wrapProvider(<MyComponent/>)
+export default () => uModels.example.wrapProvider(<MyComponent/>)
 ```
