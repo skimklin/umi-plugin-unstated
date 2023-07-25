@@ -9,13 +9,13 @@ Based on unstated-next(https://github.com/jamiebuilds/unstated-next). Simple sta
 Using npm:
 
 ```bash
-$ npm install umi-plugin-unstated
+$ npm install umi-plugin-unstated^1.1.0
 ```
 
 or using yarn:
 
 ```bash
-$ yarn add umi-plugin-unstated
+$ yarn add umi-plugin-unstated^1.1.0
 ```
 
 ## Usage
