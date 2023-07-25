@@ -135,13 +135,9 @@ export const genExports = (imports: string[]) => {
         .filter(Boolean)
         .concat([
           '',
-          ...Object.keys(name).map(
-            (key) => `export const ${key} = unstatedContainer(${key});`,
-          ),
-          '',
           'export default {',
             ...Object.keys(name).map(
-              (key) => `${key},`,
+              (key) => `${key}: unstatedContainer(${key}),`,
             ),
           '}',
         ]),
