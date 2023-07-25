@@ -1,9 +1,10 @@
 import * as path from 'path';
 import { EOL } from 'os';
 import { readFileSync } from 'fs';
-import { utils } from 'umi';
-
-const { t, parser, traverse, winPath } = utils;
+import { winPath, glob } from 'umi/plugin-utils';
+import * as parser from '@umijs/bundler-utils/compiled/babel/parser';
+import traverse from '@umijs/bundler-utils/compiled/babel/traverse';
+import * as t from '@umijs/bundler-utils/compiled/babel/types';
 
 export const isValidHook = (filePath: string) => {
   const isTS = path.extname(filePath) === '.ts';
@@ -28,11 +29,11 @@ export const isValidHook = (filePath: string) => {
       'objectRestSpread',
       'optionalChaining',
       'decorators-legacy',
-    ].filter(Boolean) as utils.parser.ParserPlugin[],
+    ].filter(Boolean) as parser.ParserPlugin[],
   });
   let valid = false;
   let identifierName = '';
-  traverse.default(ast, {
+  traverse(ast, {
     enter(p) {
       if (p.isExportDefaultDeclaration()) {
         const { type } = p.node.declaration;
@@ -43,7 +44,7 @@ export const isValidHook = (filePath: string) => {
           ) {
             valid = true;
           } else if (type === 'Identifier') {
-            identifierName = (p.node.declaration as utils.t.Identifier).name;
+            identifierName = (p.node.declaration as t.Identifier).name;
           }
         } catch (e) {
           console.error(e);
@@ -62,9 +63,9 @@ export const isValidHook = (filePath: string) => {
         }
         if (ele.type === 'VariableDeclaration') {
           if (
-            (ele.declarations[0].id as utils.t.Identifier).name ===
+            (ele.declarations[0].id as t.Identifier).name ===
               identifierName &&
-            (ele.declarations[0].init as utils.t.ArrowFunctionExpression)
+            (ele.declarations[0].init as t.ArrowFunctionExpression)
               .type === 'ArrowFunctionExpression'
           ) {
             valid = true;
@@ -92,7 +93,7 @@ export const getValidFiles = (files: string[], modelsDir: string) =>
     .filter((ele) => !!ele) as string[];
 
 export function getModels(cwd: string, pattern?: string) {
-  const files = utils.glob
+  const files = glob
     .sync(pattern || '**/*.{ts,tsx,js,jsx}', {
       cwd,
     })
@@ -116,7 +117,7 @@ export const getPath = (absPath: string) => {
 export const genExports = (imports: string[]) => {
   const name: Record<string, string> = {};
 
-  return [`import { unstatedContainer } from './export';`]
+  return [`import { unstatedContainer } from './unstatedContainer';`]
     .concat(
       imports
         .map((ele, index) => {
@@ -133,10 +134,15 @@ export const genExports = (imports: string[]) => {
         })
         .filter(Boolean)
         .concat([
-          'export default {',
+          '',
           ...Object.keys(name).map(
-            (key) => `${key}: unstatedContainer(${key}),`,
+            (key) => `export const ${key} = unstatedContainer(${key});`,
           ),
+          '',
+          'export default {',
+            ...Object.keys(name).map(
+              (key) => `${key},`,
+            ),
           '}',
         ]),
     )

@@ -1,5 +1,5 @@
 import React from 'react';
-import { unstatedModels } from './export';
+import { unstatedModels } from '.';
 
 export default ({ children }: { children: React.ReactNode }) => {
   const models = Object.values(unstatedModels);

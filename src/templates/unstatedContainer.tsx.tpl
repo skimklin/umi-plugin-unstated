@@ -1,7 +1,4 @@
 import { createContainer } from 'unstated-next';
-import models from './models';
-
-export const unstatedModels = models;
 
 export function unstatedContainer<State = unknown, R = unknown>(
   fn: (initialState?: State) => R,

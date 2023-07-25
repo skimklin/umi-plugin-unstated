@@ -1,7 +1,8 @@
 // ref:
 // - https://umijs.org/plugins/api
-import { IApi } from '@umijs/types';
+import { IApi } from 'umi';
 import * as fs from 'fs';
+import { Mustache } from 'umi/plugin-utils';
 import * as path from 'path';
 import { generateModelExports } from './generateModelTemp';
 import { getModels } from './getModels';
@@ -15,16 +16,24 @@ const TEMPLATE_DIR = 'templates';
 export default function (api: IApi) {
   const {
     paths,
-    utils: { Mustache, winPath, lodash },
   } = api;
-  api.logger.info('use plugin unstated');
-
   const isGlobal = api.userConfig?.unstated?.global === true;
+  const debug = api.userConfig?.unstated?.debug === true;
   const isOptionalProvider = Array.isArray(api.userConfig?.unstated?.global);
   const providerOption = api.userConfig?.unstated?.global || [];
+  const folder = api.userConfig?.unstated?.folder || MODEL_DIR;
+
+  function debugLog(s: string) {
+    if (debug) {
+      api.logger.info(s);
+    }
+  }
+
+  debugLog('use plugin unstated');
+  debugLog(`folder path: ${folder}`);
 
   function getModelsPath() {
-    return path.join(paths.absSrcPath!, MODEL_DIR);
+    return path.join(paths.absSrcPath!, folder);
   }
 
   api.describe({
@@ -32,28 +41,36 @@ export default function (api: IApi) {
     config: {
       default: {
         global: false,
+        folder: MODEL_DIR,
+        debug: false,
       },
       schema(joi) {
         return joi.object({
           global: [joi.boolean(), joi.array().items(joi.string())],
+          folder: joi.string(),
+          debug: joi.boolean(),
         });
       },
     },
   });
 
   api.onGenerateFiles(async () => {
-    // umi export
-    const exportTpl = fs.readFileSync(
-      path.join(__dirname, TEMPLATE_DIR, 'createContainer.tsx.tpl'),
-      'utf-8',
-    );
+    api.writeTmpFile({
+      content: fs.readFileSync(
+        path.join(__dirname, TEMPLATE_DIR, 'unstatedContainer.tsx.tpl'),
+        'utf-8',
+      ),
+      path: `unstatedContainer.tsx`,
+    });
+
     // user models
     const files = getModels(getModelsPath());
+    debugLog(`model files: ${files.join(' ')}`)
     const fileTemp = generateModelExports(files);
 
     api.writeTmpFile({
       content: fileTemp,
-      path: `${DIR_NAME_IN_TMP}/models.tsx`,
+      path: `models.tsx`,
     });
 
     if (isGlobal) {
@@ -62,7 +79,7 @@ export default function (api: IApi) {
           path.join(__dirname, TEMPLATE_DIR, 'injectAll.tsx.tpl'),
           'utf-8',
         ),
-        path: `${DIR_NAME_IN_TMP}/Provider.tsx`,
+        path: `Provider.tsx`,
       });
     } else if (isOptionalProvider) {
       api.writeTmpFile({
@@ -78,18 +95,23 @@ export default function (api: IApi) {
                 : '[]',
           },
         ),
-        path: `${DIR_NAME_IN_TMP}/Provider.tsx`,
+        path: `Provider.tsx`,
       });
     }
 
+    // index
+    const exportTpl = fs.readFileSync(
+      path.join(__dirname, TEMPLATE_DIR, 'export.tsx.tpl'),
+      'utf-8',
+    );
     api.writeTmpFile({
       content: exportTpl,
-      path: `${DIR_NAME_IN_TMP}/export.tsx`,
+      path: `index.tsx`,
     });
 
     // runtime.tsx
     api.writeTmpFile({
-      path: `${DIR_NAME_IN_TMP}/runtime.tsx`,
+      path: `runtime.tsx`,
       content: Mustache.render(
         fs.readFileSync(
           path.join(__dirname, TEMPLATE_DIR, 'runtime.tsx.tpl'),
@@ -102,18 +124,11 @@ export default function (api: IApi) {
 
   if (isGlobal || isOptionalProvider) {
     // Add provider wrapper with rootContainer
-    api.addRuntimePlugin(() => `../${DIR_NAME_IN_TMP}/runtime`);
+    api.addRuntimePlugin(() => `${DIR_NAME_IN_TMP}/runtime`);
   }
 
   api.addTmpGenerateWatcherPaths(() => {
     const modelsPath = getModelsPath();
     return [modelsPath];
   });
-
-  api.addUmiExports(() => [
-    {
-      exportAll: true,
-      source: `../${DIR_NAME_IN_TMP}/export`,
-    },
-  ]);
 }

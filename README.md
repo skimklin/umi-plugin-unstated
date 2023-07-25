@@ -2,9 +2,11 @@
 
 > umi-plugin-unstated
 
-Based on unstated-next(https://github.com/jamiebuilds/unstated-next). Simple state management,just react itself.
+基于unstated-next(https://github.com/jamiebuilds/unstated-next)的umi插件，自动读取文件注册container。
+2.x对应umi 4.x，[1.x](https://github.com/skimklin/umi-plugin-unstated/blob/version1.x/README.md)对应umi 3.x版本，根据需求选用不同版本。
 
 ## Install
+
 
 Using npm:
 
@@ -33,6 +35,14 @@ export default defineConfig({
      * 3. uModels所有合法文件都会注册为Container并添加到umi下，导出key为unstatedModels（import { unstatedModels } from 'umi'）
      */
     global: ['global'],
+    /**
+     * 读取src下目录名
+     */
+    folder: 'uModels',
+    /**
+     * 调试模式，更多的输出信息
+     */
+    debug: true,
   },
 });
 ```
