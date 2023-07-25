@@ -1,6 +1,6 @@
 {
   "name": "umi-plugin-unstated",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "umi-plugin-unstated",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
